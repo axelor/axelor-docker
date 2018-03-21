@@ -1,0 +1,17 @@
+volumes
+certs
+
+*.war
+*.properties
+
+# Backup files
+*.sw[nop]
+*~
+.#*
+[#]*#
+
+# Miscellaneous
+*.log
+.clover
+.DS_Store
+
