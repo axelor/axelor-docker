@@ -1,0 +1,12 @@
+version: '3'
+services:
+  axelor:
+    image: axelor/aio-base
+    build: .
+    ports:
+      - 8080:8080
+      - 5433:5432
+    volumes:
+      - ./volumes/postgresql:/var/lib/postgresql
+      - ./volumes/tomcat:/var/lib/tomcat
+

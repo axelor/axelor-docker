@@ -1,0 +1,13 @@
+volumes
+certs
+
+*.war
+*.properties
+
+.git
+.gitignore
+.dockerignore
+
+build.sh
+README.md
+Dockerfile
