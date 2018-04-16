@@ -7,6 +7,8 @@ services:
       - 8080:8080
       - 5433:5432
     volumes:
-      - ./volumes/postgresql:/var/lib/postgresql
-      - ./volumes/tomcat:/var/lib/tomcat
+      - ./volumes/var/lib/postgresql:/var/lib/postgresql
+      - ./volumes/var/log/postgresql:/var/log/postgresql
+      - ./volumes/var/lib/tomcat:/var/lib/tomcat
+      - ./volumes/var/log/tomcat:/var/log/tomcat
 

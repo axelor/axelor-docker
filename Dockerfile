@@ -23,8 +23,8 @@ RUN localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
 
 # jdk
-ENV JAVA_HOME=/opt/java/default
-ENV JAVA_OPTS="-Djava.awt.headless=true -XX:+UseConcMarkSweepGC"
+ENV JAVA_HOME /opt/java/default
+ENV JAVA_OPTS "-Djava.awt.headless=true -XX:+UseConcMarkSweepGC"
 
 RUN set -x \
 	&& export JAVA_VERSION="8u172" \
@@ -47,11 +47,11 @@ RUN set -x \
 	&& update-alternatives --install /usr/bin/jar jar $JAVA_DIR/bin/jar 20000
 
 # tomcat
-ENV TOMCAT_USER=tomcat
-ENV TOMCAT_GROUP=tomcat
+ENV TOMCAT_USER tomcat
+ENV TOMCAT_GROUP tomcat
 
-ENV CATALINA_HOME=/opt/tomcat/default
-ENV CATALINA_BASE=/var/lib/tomcat
+ENV CATALINA_HOME /opt/tomcat/default
+ENV CATALINA_BASE /var/lib/tomcat
 
 RUN set -x \
 	&& addgroup --system "$TOMCAT_GROUP" --quiet \
@@ -88,9 +88,15 @@ RUN set -x \
 	&& mkdir -p $CATALINA_BASE/conf \
 	&& mkdir -p $CATALINA_BASE/temp \
 	&& mkdir -p $CATALINA_BASE/webapps \
+	&& cp $CATALINA_HOME/conf/tomcat-users.xml $CATALINA_BASE/conf/ \
+	&& cp $CATALINA_HOME/conf/logging.properties $CATALINA_BASE/conf/ \
 	&& cp $CATALINA_HOME/conf/server.xml $CATALINA_BASE/conf/ \
 	&& cp $CATALINA_HOME/conf/web.xml $CATALINA_BASE/conf/ \
-	&& chown -R $TOMCAT_USER:$TOMCAT_GROUP $CATALINA_BASE
+	&& sed -i 's/directory="logs"/directory="\/var\/log\/tomcat"/g' $CATALINA_BASE/conf/server.xml \
+	&& sed -i 's/\${catalina\.base}\/logs/\/var\/log\/tomcat/g' $CATALINA_BASE/conf/logging.properties \
+	&& mkdir -p /var/log/tomcat \
+	&& chown -R $TOMCAT_USER:$TOMCAT_GROUP $CATALINA_BASE \
+	&& chown -R $TOMCAT_USER:$TOMCAT_GROUP /var/log/tomcat
 
 # tomcat-native lib path
 ENV TOMCAT_NATIVE_LIBDIR $CATALINA_HOME/native-jni-lib
@@ -132,6 +138,7 @@ RUN set -x \
 
 VOLUME /var/lib/tomcat
 VOLUME /var/lib/postgresql
+VOLUME /var/log/tomcat
 VOLUME /var/log/postgresql
 
 EXPOSE 80

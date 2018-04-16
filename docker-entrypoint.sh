@@ -7,21 +7,25 @@ start_nginx() {
 
 start_postgres() {
 
-	# initialize postgresql
-	if [ ! -s "$PGDATA/PG_VERSION" ]; then
+	if [ -s "$PGDATA/PG_VERSION" ]; then
+		# start postgres
+		service postgresql start
+	else
+		# initialize postgresql
 		mkdir -p $PGDATA
+		mkdir -p /var/log/postgresql
+
 		chown -R postgres:postgres $PGDATA
+		chown -R postgres:postgres /var/log/postgresql
+
 		gosu postgres initdb --username=postgres
 		echo "host all all all md5" >> $PGDATA/pg_hba.conf \
 		echo "listen_addresses='localhost'" >> $PGDATA/postgresql.conf
-	fi
 
-	# start postgres
-	service postgresql start
+		# start postgres
+		service postgresql start
 
-	if [[ ! -f /var/lib/postgresql/.init_done ]]; then
-
-		PSQL="gosu postgres psql"
+		local PSQL="gosu postgres psql"
 
 		# create user
 		if [ "$POSTGRES_USER" = 'postgres' ]; then
@@ -44,8 +48,6 @@ start_postgres() {
 			esac
 			echo
 		done
-
-		touch /var/lib/postgresql/.init_done
 	fi
 }
 
@@ -63,9 +65,14 @@ prepare_app() {
 	# tomcat base
 	if [[ ! -d $CATALINA_BASE/conf ]]; then
 		mkdir -p $CATALINA_BASE/{conf,temp,webapps}
-		cp $CATALINA_HOME/conf/server.xml $CATALINA_BASE/conf/
-		cp $CATALINA_HOME/conf/web.xml $CATALINA_BASE/conf/
+		cp $CATALINA_HOME/conf/tomcat-users.xml $CATALINA_BASE/conf/ \
+		cp $CATALINA_HOME/conf/logging.properties $CATALINA_BASE/conf/ \
+		cp $CATALINA_HOME/conf/server.xml $CATALINA_BASE/conf/ \
+		cp $CATALINA_HOME/conf/web.xml $CATALINA_BASE/conf/ \
+		sed -i 's/directory="logs"/directory="\/var\/log\/tomcat"/g' $CATALINA_BASE/conf/server.xml \
+		sed -i 's/\${catalina.base}\/logs/\/var\/log\/tomcat/g' $CATALINA_BASE/conf/logging.properties \
 		chown -R $TOMCAT_USER:$TOMCAT_GROUP $CATALINA_BASE
+		chown -R $TOMCAT_USER:$TOMCAT_GROUP /var/log/tomcat
 	fi
 }
 
