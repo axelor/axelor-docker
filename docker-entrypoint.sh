@@ -52,28 +52,43 @@ start_postgres() {
 }
 
 start_tomcat() {
-	cd $CATALINA_BASE
-
-	if [[ -f $CATALINA_BASE/application.properties ]]; then
-		export JAVA_OPTS="-Daxelor.config=$CATALINA_BASE/application.properties $JAVA_OPTS"
+	if [ -f "$CATALINA_BASE/app.properties" ]; then
+		JAVA_OPTS="-Daxelor.config=$CATALINA_BASE/app.properties $JAVA_OPTS" gosu tomcat tomcat run
+	else
+		gosu tomcat tomcat run
 	fi
-
-	gosu tomcat tomcat run
 }
 
 prepare_app() {
 	# tomcat base
-	if [[ ! -d $CATALINA_BASE/conf ]]; then
+	if [ ! -f $CATALINA_BASE/conf/server.xml ]; then
 		mkdir -p $CATALINA_BASE/{conf,temp,webapps}
-		cp $CATALINA_HOME/conf/tomcat-users.xml $CATALINA_BASE/conf/ \
-		cp $CATALINA_HOME/conf/logging.properties $CATALINA_BASE/conf/ \
-		cp $CATALINA_HOME/conf/server.xml $CATALINA_BASE/conf/ \
-		cp $CATALINA_HOME/conf/web.xml $CATALINA_BASE/conf/ \
-		sed -i 's/directory="logs"/directory="\/var\/log\/tomcat"/g' $CATALINA_BASE/conf/server.xml \
-		sed -i 's/\${catalina.base}\/logs/\/var\/log\/tomcat/g' $CATALINA_BASE/conf/logging.properties \
+		cp $CATALINA_HOME/conf/tomcat-users.xml $CATALINA_BASE/conf/
+		cp $CATALINA_HOME/conf/logging.properties $CATALINA_BASE/conf/
+		cp $CATALINA_HOME/conf/server.xml $CATALINA_BASE/conf/
+		cp $CATALINA_HOME/conf/web.xml $CATALINA_BASE/conf/
+		sed -i 's/directory="logs"/directory="\/var\/log\/tomcat"/g' $CATALINA_BASE/conf/server.xml
+		sed -i 's/\${catalina.base}\/logs/\/var\/log\/tomcat/g' $CATALINA_BASE/conf/logging.properties
 		chown -R $TOMCAT_USER:$TOMCAT_GROUP $CATALINA_BASE
 		chown -R $TOMCAT_USER:$TOMCAT_GROUP /var/log/tomcat
 	fi
+
+	# prepare config file and save it as app.properties
+	(
+		cd $CATALINA_BASE; \
+		[ ! -e application.properties -a -e webapps/ROOT.war ] \
+			&& jar xf webapps/ROOT.war WEB-INF/classes/application.properties \
+			&& mv WEB-INF/classes/application.properties . \
+			&& rm -rf WEB-INF;
+		[ ! -e app.properties -a -e application.properties ] \
+			&& cp application.properties app.properties \
+			&& echo >> app.properties \
+			&& echo "application.mode = prod" >> app.properties \
+			&& echo "db.default.url = jdbc:postgresql://localhost:5432/$POSTGRES_DB" >> app.properties \
+			&& echo "db.default.user = axelor" >> app.properties \
+			&& echo "db.default.password = axelor" >> app.properties;
+		exit 0;
+	)
 }
 
 if [ "$1" = "start" ]; then
@@ -86,4 +101,3 @@ fi
 
 # Else default to run whatever the user wanted like "bash"
 exec "$@"
-
