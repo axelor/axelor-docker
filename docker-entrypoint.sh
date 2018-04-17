@@ -2,6 +2,11 @@
 set -e
 
 start_nginx() {
+	local conf=nginx.conf
+	[ -e /etc/nginx/certs/nginx.crt -a \
+	  -e /etc/nginx/certs/nginx.key -a \
+	  -e /etc/nginx/certs/dhparam.pem ] && conf=nginx-ssl.conf
+	envsubst '$NGINX_HOST $NGINX_PORT' < /etc/nginx/conf.d.templates/${conf} > /etc/nginx/conf.d/default.conf
 	service nginx start
 }
 
@@ -60,7 +65,12 @@ start_tomcat() {
 }
 
 prepare_app() {
-	# tomcat base
+
+	# ensure tomcat specific dirs exist
+	mkdir -p /var/log/tomcat
+	mkdir -p $CATALINA_BASE/{conf,temp,webapps}
+
+	# prepare tomcat base
 	if [ ! -f $CATALINA_BASE/conf/server.xml ]; then
 		mkdir -p $CATALINA_BASE/{conf,temp,webapps}
 		cp $CATALINA_HOME/conf/tomcat-users.xml $CATALINA_BASE/conf/
@@ -69,8 +79,6 @@ prepare_app() {
 		cp $CATALINA_HOME/conf/web.xml $CATALINA_BASE/conf/
 		sed -i 's/directory="logs"/directory="\/var\/log\/tomcat"/g' $CATALINA_BASE/conf/server.xml
 		sed -i 's/\${catalina.base}\/logs/\/var\/log\/tomcat/g' $CATALINA_BASE/conf/logging.properties
-		chown -R $TOMCAT_USER:$TOMCAT_GROUP $CATALINA_BASE
-		chown -R $TOMCAT_USER:$TOMCAT_GROUP /var/log/tomcat
 	fi
 
 	# prepare config file and save it as app.properties
@@ -87,6 +95,22 @@ prepare_app() {
 			&& echo "db.default.url = jdbc:postgresql://localhost:5432/$POSTGRES_DB" >> app.properties \
 			&& echo "db.default.user = axelor" >> app.properties \
 			&& echo "db.default.password = axelor" >> app.properties;
+		exit 0;
+	)
+
+	# ensure proper permissions
+	( chown -hfR $TOMCAT_USER:adm /var/log/tomcat || exit 0 )
+	( chown -hfR $TOMCAT_USER:$TOMCAT_GROUP $CATALINA_BASE || exit 0 )
+
+	# copy static files in a separate directory for nginx
+	(
+		cd $CATALINA_BASE/webapps; \
+		[ ! -d static -a -e ROOT.war ] \
+			&& mkdir -p static \
+			&& cd static \
+			&& jar xf ../ROOT.war css js img ico lib dist partials \
+			&& cd .. \
+			&& chown -R tomcat:nginx static;
 		exit 0;
 	)
 }

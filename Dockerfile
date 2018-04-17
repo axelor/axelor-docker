@@ -15,7 +15,8 @@ RUN set -x \
 	&& DEBIAN_FRONTEND=noninteractive apt-get update \
 	&& DEBIAN_FRONTEND=noninteractive apt-get install -y \
 		supervisor gosu postgresql-9.6 postgresql-contrib-9.6 \
-		libapr1 nginx git-core nodejs yarn \
+		libapr1 nginx gettext-base \
+		git-core nodejs yarn \
 		dpkg-dev gcc libapr1-dev libssl-dev make
 
 # update locale
@@ -136,12 +137,20 @@ RUN set -x \
 	&& echo "host all all all md5" >> /etc/postgresql/9.6/main/pg_hba.conf \
 	&& echo "listen_addresses='localhost'" >> /etc/postgresql/9.6/main/postgresql.conf
 
+# nginx
+ENV NGINX_HOST localhost
+ENV NGINX_PORT 443
+
+COPY nginx.conf /etc/nginx/conf.d.templates/
+COPY nginx-ssl.conf /etc/nginx/conf.d.templates/
+
 VOLUME /var/lib/tomcat
 VOLUME /var/lib/postgresql
 VOLUME /var/log/tomcat
 VOLUME /var/log/postgresql
 
 EXPOSE 80
+EXPOSE 443
 EXPOSE 8080
 EXPOSE 5432
 

@@ -4,9 +4,13 @@ services:
     image: axelor/aio-base
     build: .
     ports:
-      - 8080:8080
-      - 5433:5432
+      - 80:80
+      - 443:443
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=443
     volumes:
+      - ./certs:/etc/nginx/certs:ro
       - ./volumes/var/lib/postgresql:/var/lib/postgresql
       - ./volumes/var/log/postgresql:/var/log/postgresql
       - ./volumes/var/lib/tomcat:/var/lib/tomcat
