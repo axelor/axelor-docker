@@ -1,33 +1,16 @@
-FROM debian:stretch
-LABEL maintainer="Axelor <support@axelor.com>"
+FROM debian:stretch as builder
 
-RUN set -x \
-	&& DEBIAN_FRONTEND=noninteractive apt-get update \
-	&& DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg dirmngr curl apt-transport-https \
-	&& apt-key adv --fetch-keys http://nginx.org/keys/nginx_signing.key \
-	&& echo "deb http://nginx.org/packages/debian/ stretch nginx" >> /etc/apt/sources.list \
-	&& apt-key adv --fetch-keys https://www.postgresql.org/media/keys/ACCC4CF8.asc \
-	&& echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
-	&& apt-key adv --fetch-keys https://deb.nodesource.com/gpgkey/nodesource.gpg.key \
-	&& echo 'deb https://deb.nodesource.com/node_8.x stretch main' > /etc/apt/sources.list.d/nodesource.list \
-	&& apt-key adv --fetch-keys https://dl.yarnpkg.com/debian/pubkey.gpg \
-	&& echo 'deb https://dl.yarnpkg.com/debian/ stable main' > /etc/apt/sources.list.d/yarn.list \
+RUN set -ex \
 	&& DEBIAN_FRONTEND=noninteractive apt-get update \
 	&& DEBIAN_FRONTEND=noninteractive apt-get install -y \
-		supervisor gosu postgresql-9.6 postgresql-contrib-9.6 \
-		libapr1 nginx gettext-base \
-		git-core nodejs yarn \
-		dpkg-dev gcc libapr1-dev libssl-dev make
-
-# update locale
-RUN localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
-ENV LANG en_US.utf8
+		curl dpkg-dev gcc libapr1-dev libssl-dev make \
+	&& rm -rf /var/lib/apt/lists/*
 
 # jdk
 ENV JAVA_HOME /opt/java/default
 ENV JAVA_OPTS "-Djava.awt.headless=true -XX:+UseConcMarkSweepGC"
 
-RUN set -x \
+RUN set -ex \
 	&& export JAVA_VERSION="8u172" \
 	&& export JAVA_BUILD="b11" \
 	&& export JAVA_DL_HASH="a58eab1ec242421181065cdc37240b08" \
@@ -42,25 +25,13 @@ RUN set -x \
 	&& cd - \
 	&& export JAVA_DIR=$(ls -1 -d /opt/java/*) \
 	&& ln -s $JAVA_DIR /opt/java/latest \
-	&& ln -s $JAVA_DIR /opt/java/default \
-	&& update-alternatives --install /usr/bin/java java $JAVA_DIR/bin/java 20000 \
-	&& update-alternatives --install /usr/bin/javac javac $JAVA_DIR/bin/javac 20000 \
-	&& update-alternatives --install /usr/bin/jar jar $JAVA_DIR/bin/jar 20000
+	&& ln -s $JAVA_DIR /opt/java/default
 
 # tomcat
-ENV TOMCAT_USER tomcat
-ENV TOMCAT_GROUP tomcat
-
 ENV CATALINA_HOME /opt/tomcat/default
 ENV CATALINA_BASE /var/lib/tomcat
 
-RUN set -x \
-	&& addgroup --system "$TOMCAT_GROUP" --quiet \
-	&& adduser \
-		--system --home "$CATALINA_BASE" --no-create-home \
-		--ingroup "$TOMCAT_GROUP" --disabled-password --shell /bin/false "$TOMCAT_USER"
-
-RUN set -x \
+RUN set -ex \
 	&& export TOMCAT_MAJOR="8" \
 	&& export TOMCAT_VERSION="8.5.30" \
 	&& export TOMCAT_SHA1="95798f8fe05549f72be84f927a7f8fe6342211a0" \
@@ -75,9 +46,6 @@ RUN set -x \
 	&& export TOMCAT_DIR=$(ls -1 -d /opt/tomcat/*) \
 	&& ln -s $TOMCAT_DIR /opt/tomcat/latest \
 	&& ln -s $TOMCAT_DIR /opt/tomcat/default \
-	&& update-alternatives --install /usr/bin/tomcat tomcat $TOMCAT_DIR/bin/catalina.sh 20000 \
-	&& update-alternatives --install /usr/bin/tomcat-digest tomcat-digest $TOMCAT_DIR/bin/digest.sh 20000 \
-	&& update-alternatives --install /usr/bin/tomcat-tool-wrapper tomcat-tool-wrapper $TOMCAT_DIR/bin/tool-wrapper.sh 20000 \
 	&& chmod 755 $TOMCAT_DIR/bin \
 	&& chmod 755 $TOMCAT_DIR/lib \
 	&& chmod 755 $TOMCAT_DIR/conf \
@@ -94,17 +62,14 @@ RUN set -x \
 	&& cp $CATALINA_HOME/conf/server.xml $CATALINA_BASE/conf/ \
 	&& cp $CATALINA_HOME/conf/web.xml $CATALINA_BASE/conf/ \
 	&& sed -i 's/directory="logs"/directory="\/var\/log\/tomcat"/g' $CATALINA_BASE/conf/server.xml \
-	&& sed -i 's/\${catalina\.base}\/logs/\/var\/log\/tomcat/g' $CATALINA_BASE/conf/logging.properties \
-	&& mkdir -p /var/log/tomcat \
-	&& chown -R $TOMCAT_USER:$TOMCAT_GROUP $CATALINA_BASE \
-	&& chown -R $TOMCAT_USER:$TOMCAT_GROUP /var/log/tomcat
+	&& sed -i 's/\${catalina\.base}\/logs/\/var\/log\/tomcat/g' $CATALINA_BASE/conf/logging.properties
 
 # tomcat-native lib path
 ENV TOMCAT_NATIVE_LIBDIR $CATALINA_HOME/native-jni-lib
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$TOMCAT_NATIVE_LIBDIR
 
 # build tomcat-native
-RUN set -x \
+RUN set -ex \
 	&& export NATIVE_BUILD_DIR="$(mktemp -d)" \
 	&& tar -xvf $CATALINA_HOME/bin/tomcat-native.tar.gz -C "$NATIVE_BUILD_DIR" --strip-components=1 \
 	&& cd $NATIVE_BUILD_DIR/native \
@@ -117,13 +82,73 @@ RUN set -x \
 		--with-ssl=yes \
 	&& make -j "$(nproc)" \
 	&& make install \
-	&& rm -rf $NATIVE_BUILD_DIR \
-	&& rm $CATALINA_HOME/bin/tomcat-native.tar.gz
+	&& rm -f $CATALINA_HOME/bin/*.bat \
+	&& rm -f $CATALINA_HOME/bin/*.tar.gz \
+	&& rm -rf $NATIVE_BUILD_DIR
 
-# clean up
-RUN set -x \
-	&& DEBIAN_FRONTEND=noninteractive apt-get purge -y --autoremove dpkg-dev gcc libapr1-dev libssl-dev make \
+## end of builder stage
+
+FROM debian:stretch
+LABEL maintainer="Axelor <support@axelor.com>"
+
+RUN set -ex \
+	&& DEBIAN_FRONTEND=noninteractive apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg dirmngr apt-transport-https \
+	&& apt-key adv --fetch-keys http://nginx.org/keys/nginx_signing.key \
+	&& echo "deb http://nginx.org/packages/debian/ stretch nginx" >> /etc/apt/sources.list \
+	&& apt-key adv --fetch-keys https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+	&& echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
+	&& apt-key adv --fetch-keys https://deb.nodesource.com/gpgkey/nodesource.gpg.key \
+	&& echo 'deb https://deb.nodesource.com/node_8.x stretch main' > /etc/apt/sources.list.d/nodesource.list \
+	&& apt-key adv --fetch-keys https://dl.yarnpkg.com/debian/pubkey.gpg \
+	&& echo 'deb https://dl.yarnpkg.com/debian/ stable main' > /etc/apt/sources.list.d/yarn.list \
+	&& DEBIAN_FRONTEND=noninteractive apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get install -y \
+		supervisor gosu postgresql-9.6 postgresql-contrib-9.6 \
+		libapr1 nginx gettext-base \
+		git-core nodejs yarn \
 	&& rm -rf /var/lib/apt/lists/*
+
+# update locale
+RUN localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+ENV LANG en_US.utf8
+
+# jdk
+ENV JAVA_HOME /opt/java/default
+ENV JAVA_OPTS "-Djava.awt.headless=true -XX:+UseConcMarkSweepGC"
+
+# tomcat
+ENV TOMCAT_USER tomcat
+ENV TOMCAT_GROUP tomcat
+
+ENV CATALINA_HOME /opt/tomcat/default
+ENV CATALINA_BASE /var/lib/tomcat
+
+# copy from builder
+COPY --from=builder /opt /opt
+COPY --from=builder /var/lib/tomcat $CATALINA_BASE
+
+RUN set -ex \
+	&& addgroup --system "$TOMCAT_GROUP" --quiet \
+	&& adduser \
+		--system --home "$CATALINA_BASE" --no-create-home \
+		--ingroup "$TOMCAT_GROUP" --disabled-password --shell /bin/false "$TOMCAT_USER"
+
+RUN set -ex \
+	&& update-alternatives --install /usr/bin/java java $JAVA_HOME/bin/java 20000 \
+	&& update-alternatives --install /usr/bin/javac javac $JAVA_HOME/bin/javac 20000 \
+	&& update-alternatives --install /usr/bin/jar jar $JAVA_HOME/bin/jar 20000 \
+	&& update-alternatives --install /usr/bin/tomcat tomcat $CATALINA_HOME/bin/catalina.sh 20000 \
+	&& update-alternatives --install /usr/bin/tomcat-digest tomcat-digest $CATALINA_HOME/bin/digest.sh 20000 \
+	&& update-alternatives --install /usr/bin/tomcat-tool-wrapper tomcat-tool-wrapper $CATALINA_HOME/bin/tool-wrapper.sh 20000 \
+	&& chown root:$TOMCAT_GROUP $CATALINA_HOME/conf/* \
+	&& mkdir -p /var/log/tomcat \
+	&& mkdir -p $CATALINA_BASE/{} \
+	&& chown -R $TOMCAT_USER:$TOMCAT_GROUP $CATALINA_BASE \
+	&& chown -R $TOMCAT_USER:$TOMCAT_GROUP /var/log/tomcat
+
+# tomcat-native lib path
+ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$CATALINA_HOME/native-jni-lib
 
 # postgres
 ENV POSTGRES_USER axelor
@@ -133,9 +158,12 @@ ENV POSTGRES_DB axelor
 ENV PATH $PATH:/usr/lib/postgresql/9.6/bin
 ENV PGDATA /var/lib/postgresql/9.6/main
 
-RUN set -x \
+RUN set -ex \
 	&& echo "host all all all md5" >> /etc/postgresql/9.6/main/pg_hba.conf \
-	&& echo "listen_addresses='localhost'" >> /etc/postgresql/9.6/main/postgresql.conf
+	&& echo "listen_addresses='localhost'" >> /etc/postgresql/9.6/main/postgresql.conf \
+	&& rm -rf /var/lib/postgresql/9.6/main \
+	&& mkdir -p /var/lib/postgresql/9.6 \
+	&& chown -R postgres:postgres /var/lib/postgresql
 
 # nginx
 ENV NGINX_HOST localhost
@@ -144,15 +172,9 @@ ENV NGINX_PORT 443
 COPY nginx.conf /etc/nginx/conf.d.templates/
 COPY nginx-ssl.conf /etc/nginx/conf.d.templates/
 
-VOLUME /var/lib/tomcat
-VOLUME /var/lib/postgresql
-VOLUME /var/log/tomcat
-VOLUME /var/log/postgresql
+VOLUME ["/var/lib/tomcat", "/var/lib/postgresql", "/var/log/tomcat", "/var/log/postgresql"]
 
-EXPOSE 80
-EXPOSE 443
-EXPOSE 8080
-EXPOSE 5432
+EXPOSE 80 443 8080 5432
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && mkdir /docker-entrypoint-initdb.d
