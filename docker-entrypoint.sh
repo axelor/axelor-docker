@@ -24,8 +24,8 @@ start_postgres() {
 		chown -R postgres:postgres /var/log/postgresql
 
 		gosu postgres initdb --username=postgres
-		echo "host all all all md5" >> $PGDATA/pg_hba.conf \
-		echo "listen_addresses='localhost'" >> $PGDATA/postgresql.conf
+		[ -e $PGDATA/pg_hba.conf ] && echo "host all all all md5" >> $PGDATA/pg_hba.conf
+		[ -e $PGDATA/postgresql.conf ] && echo "listen_addresses='localhost'" >> $PGDATA/postgresql.conf
 
 		# start postgres
 		service postgresql start
