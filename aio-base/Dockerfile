@@ -33,13 +33,13 @@ ENV CATALINA_BASE /var/lib/tomcat
 
 RUN set -ex \
 	&& export TOMCAT_MAJOR="8" \
-	&& export TOMCAT_VERSION="8.5.30" \
-	&& export TOMCAT_SHA1="95798f8fe05549f72be84f927a7f8fe6342211a0" \
+	&& export TOMCAT_VERSION="8.5.31" \
+	&& export TOMCAT_ESUM="a961eedc4b0c0729f1fb96dafb75eb48e000502233b849f47c84a6355873bc96d131b112400587e96391262e0659df9b991b4e66a78fda74168f939c4ab5af88" \
 	&& export TOMCAT_PKG="apache-tomcat-$TOMCAT_VERSION.tar.gz" \
 	&& mkdir /opt/tomcat \
 	&& cd /opt/tomcat \
 	&& curl -L -O "https://www.apache.org/dyn/closer.cgi?action=download&filename=tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/$TOMCAT_PKG" \
-	&& echo "$TOMCAT_SHA1 $TOMCAT_PKG" | sha1sum -c - \
+	&& echo "$TOMCAT_ESUM $TOMCAT_PKG" | sha512sum -c - \
 	&& tar -xf $TOMCAT_PKG \
 	&& rm -f $TOMCAT_PKG \
 	&& cd - \
