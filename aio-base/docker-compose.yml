@@ -15,4 +15,3 @@ services:
       - ./volumes/var/log/postgresql:/var/log/postgresql
       - ./volumes/var/lib/tomcat:/var/lib/tomcat
       - ./volumes/var/log/tomcat:/var/log/tomcat
-
