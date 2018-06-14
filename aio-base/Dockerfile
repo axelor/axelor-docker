@@ -11,15 +11,12 @@ ENV JAVA_HOME /opt/java/default
 ENV JAVA_OPTS "-Djava.awt.headless=true -XX:+UseConcMarkSweepGC"
 
 RUN set -ex \
-	&& export JAVA_VERSION="8u172" \
-	&& export JAVA_BUILD="b11" \
-	&& export JAVA_DL_HASH="a58eab1ec242421181065cdc37240b08" \
-	&& export JAVA_MD5="1e4cdd3c3e8c524c02f52981b6ddfc0e" \
-	&& export JAVA_PKG="server-jre-${JAVA_VERSION}-linux-x64.tar.gz" \
+	&& export JAVA_ESUM="228d85bef36f5893885b52cb571101418c4f8b87c689996ace55d85b720b2a12" \
+	&& export JAVA_PKG="openjdk.tar.gz" \
 	&& mkdir -p /opt/java \
 	&& cd /opt/java \
-	&& curl -L -O -b oraclelicense=a "http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION}-${JAVA_BUILD}/${JAVA_DL_HASH}/${JAVA_PKG}" \
-	&& echo "$JAVA_MD5 $JAVA_PKG" | md5sum -c - \
+	&& curl -Lso "$JAVA_PKG" "https://api.adoptopenjdk.net/openjdk8/releases/x64_linux/latest/binary" \
+	&& echo "$JAVA_ESUM $JAVA_PKG" | sha256sum -c - \
 	&& tar -xf $JAVA_PKG \
 	&& rm -f $JAVA_PKG \
 	&& cd - \
