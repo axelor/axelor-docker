@@ -14,6 +14,7 @@ RUN \
   git submodule update && \
   git submodule foreach git checkout master && \
   git submodule foreach git pull origin master && \
+  sed -e 's|^application.theme.*|application.theme = modern|g' -i src/main/resources/application.properties && \
   ./gradlew --no-daemon -x test npm-build build
 
 FROM axelor/aio-base
