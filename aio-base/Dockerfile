@@ -10,12 +10,13 @@ RUN set -ex \
 ENV JAVA_HOME /opt/java/default
 ENV JAVA_OPTS "-Djava.awt.headless=true -XX:+UseConcMarkSweepGC"
 
+# get details from https://api.adoptopenjdk.net/v2/info/releases/openjdk8?openjdk_impl=hotspot&os=linux&arch=x64&type=jdk
 RUN set -ex \
-	&& export JAVA_ESUM="228d85bef36f5893885b52cb571101418c4f8b87c689996ace55d85b720b2a12" \
+	&& export JAVA_ESUM="19c91906c220c8eac38179fb661a810c451779a65b8be530c1d98e15b6bb2673" \
 	&& export JAVA_PKG="openjdk.tar.gz" \
 	&& mkdir -p /opt/java \
 	&& cd /opt/java \
-	&& curl -Lso "$JAVA_PKG" "https://api.adoptopenjdk.net/openjdk8/releases/x64_linux/latest/binary" \
+	&& curl -Lso "$JAVA_PKG" "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u192-b12/OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz" \
 	&& echo "$JAVA_ESUM $JAVA_PKG" | sha256sum -c - \
 	&& tar -xf $JAVA_PKG \
 	&& rm -f $JAVA_PKG \
