@@ -13,6 +13,13 @@ $ cd aio-base
 $ docker build -t axelor/aio-base .
 ```
 
+### Build builder image
+
+```sh
+$ cd aio-builder
+$ docker build -t axelor/aio-builder .
+```
+
 ### Build app image
 
 ```sh
@@ -29,3 +36,4 @@ $ docker run -it -p 8080:80 axelor/aio-erp
 ```
 
 Once app completes database initialization, it can be access at: http://localhost:8080
+
