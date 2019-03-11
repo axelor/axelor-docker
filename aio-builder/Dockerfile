@@ -50,7 +50,5 @@ RUN \
   git submodule foreach git pull origin master && \
   sed -e 's|^application.theme.*|application.theme = modern|g' -i src/main/resources/application.properties && \
   ./gradlew --no-daemon -x test npm-build build && \
-  find ~/.gradle -type d -name "com.axelor" | xargs rm -rf && \
-  find ~/.gradle -type f -name "axelor-*.jar" -delete && \
   rm -rf /app
 
