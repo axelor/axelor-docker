@@ -17,7 +17,7 @@ ENV CATALINA_BASE /var/lib/tomcat
 RUN set -ex \
 	&& export TOMCAT_MAJOR="8" \
 	&& export TOMCAT_VERSION="8.5.50" \
-	&& export TOMCAT_ESUM="3a3e624014faf87091e6dbb8bad13c68240955d62301d22cf3d75a1766859dd97500d6850fbd5d3dc012f08f9301eb24c24fa7175bcca616767fa5c18875072d" \
+	&& export TOMCAT_ESUM="ffca86027d298ba107c7d01c779318c05b61ba48767cc5967ee6ce5a88271bb6ec8eed60708d45453f30eeedddcaedd1a369d6df1b49eea2cd14fa40832cfb90" \
 	&& export TOMCAT_PKG="apache-tomcat-$TOMCAT_VERSION.tar.gz" \
 	&& mkdir -p $CATALINA_HOME \
 	&& mkdir -p $CATALINA_BASE \
