@@ -16,13 +16,13 @@ ENV CATALINA_BASE /var/lib/tomcat
 
 RUN set -ex \
 	&& export TOMCAT_MAJOR="8" \
-	&& export TOMCAT_VERSION="8.5.51" \
-	&& export TOMCAT_ESUM="bb9207d33d7b4408292186523f3556a3d1454ea172b4a6cde6e0028e2f7a5d9408615cb4ccf8d9fdb75a9f8ce227580f56f929a811eb24ef99e26f980e4bcb48" \
+	&& export TOMCAT_VERSION="8.5.50" \
+	&& export TOMCAT_ESUM="ffca86027d298ba107c7d01c779318c05b61ba48767cc5967ee6ce5a88271bb6ec8eed60708d45453f30eeedddcaedd1a369d6df1b49eea2cd14fa40832cfb90" \
 	&& export TOMCAT_PKG="apache-tomcat-$TOMCAT_VERSION.tar.gz" \
 	&& mkdir -p $CATALINA_HOME \
 	&& mkdir -p $CATALINA_BASE \
 	&& cd $CATALINA_HOME \
-	&& curl -L -O "https://www.apache.org/dyn/closer.cgi?action=download&filename=tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/$TOMCAT_PKG" \
+	&& curl -L -O "https://archive.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/$TOMCAT_PKG" \
 	&& echo "$TOMCAT_ESUM $TOMCAT_PKG" | sha512sum -c - \
 	&& tar -xvf $TOMCAT_PKG --strip-components=1 \
 	&& rm -f $TOMCAT_PKG \
