@@ -16,8 +16,8 @@ ENV CATALINA_BASE /var/lib/tomcat
 
 RUN set -ex \
 	&& export TOMCAT_MAJOR="8" \
-	&& export TOMCAT_VERSION="8.5.38" \
-	&& export TOMCAT_ESUM="3a3e624014faf87091e6dbb8bad13c68240955d62301d22cf3d75a1766859dd97500d6850fbd5d3dc012f08f9301eb24c24fa7175bcca616767fa5c18875072d" \
+	&& export TOMCAT_VERSION="8.5.51" \
+	&& export TOMCAT_ESUM="bb9207d33d7b4408292186523f3556a3d1454ea172b4a6cde6e0028e2f7a5d9408615cb4ccf8d9fdb75a9f8ce227580f56f929a811eb24ef99e26f980e4bcb48" \
 	&& export TOMCAT_PKG="apache-tomcat-$TOMCAT_VERSION.tar.gz" \
 	&& mkdir -p $CATALINA_HOME \
 	&& mkdir -p $CATALINA_BASE \
@@ -137,13 +137,16 @@ ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$CATALINA_HOME/native-j
 ENV POSTGRES_USER axelor
 ENV POSTGRES_PASSWORD axelor
 ENV POSTGRES_DB axelor
+# postgres Server
+ENV DB_SERVER localhost
+ENV DB_SERVER_PORT 5432
 
 ENV PATH $PATH:/usr/lib/postgresql/9.6/bin
 ENV PGDATA /var/lib/postgresql/9.6/main
 
 RUN set -ex \
 	&& echo "host all all all md5" >> /etc/postgresql/9.6/main/pg_hba.conf \
-	&& echo "listen_addresses='localhost'" >> /etc/postgresql/9.6/main/postgresql.conf \
+	&& echo "listen_addresses='*'" >> /etc/postgresql/9.6/main/postgresql.conf \
 	&& rm -rf /var/lib/postgresql/9.6/main \
 	&& mkdir -p /var/lib/postgresql/9.6 \
 	&& chown -R postgres:postgres /var/lib/postgresql

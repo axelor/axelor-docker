@@ -1,17 +1,27 @@
-version: '3'
+version: '3.7'
+
 services:
   axelor:
+    container_name: app
     image: axelor/aio-base
     build: .
     ports:
       - 80:80
       - 443:443
+      - 5434:5432
     environment:
-      - NGINX_HOST=localhost
-      - NGINX_PORT=443
+      NGINX_HOST: localhost
+      NGINX_PORT: 443
+      POSTGRES_USER: axelor
+      POSTGRES_PASSWORD: axelor
+      POSTGRES_DB: axelor
+      DB_SERVER: localhost
+      DB_SERVER_PORT: 5432
     volumes:
       - ./certs:/etc/nginx/certs:ro
       - ./volumes/var/lib/postgresql:/var/lib/postgresql
       - ./volumes/var/log/postgresql:/var/log/postgresql
       - ./volumes/var/lib/tomcat:/var/lib/tomcat
       - ./volumes/var/log/tomcat:/var/log/tomcat
+      # The following sets the WAR to be deployed avalibale to the container
+      - ${PWD}/axelor-erp-latest.war:/var/lib/tomcat/webapps/ROOT.war
