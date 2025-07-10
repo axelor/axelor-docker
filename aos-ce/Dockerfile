@@ -1,10 +1,11 @@
 ARG AOP_VERSION=latest
 FROM axelor/app-builder:${AOP_VERSION} AS builder
 ARG AOS_VERSION=master
+ARG WEBAPP_VERSION=${AOS_VERSION}
 ARG APP_SOURCE=/app
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN git clone https://github.com/axelor/open-suite-webapp.git -b ${AOS_VERSION} ${APP_SOURCE} && \
+RUN git clone https://github.com/axelor/open-suite-webapp.git -b ${WEBAPP_VERSION} ${APP_SOURCE} && \
 	git clone https://github.com/axelor/axelor-open-suite.git -b ${AOS_VERSION} ${APP_SOURCE}/modules/axelor-open-suite
 
 WORKDIR ${APP_SOURCE}

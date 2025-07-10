@@ -5,15 +5,87 @@ on:
     branches: [ "master" ]
   schedule:
     - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      target_aos:
+        description: 'Source repository for AOS branches (format: owner/repo)'
+        required: false
+        default: 'axelor/axelor-open-suite'
+      target_webapp:
+        description: 'Source repository for webapp branches (format: owner/repo)'
+        required: false
+        default: 'axelor/open-suite-webapp'
+      branch_pattern:
+        description: 'Pattern for branches to build (regex)'
+        required: false
+        default: '^[0-9]+\.[0-9]+$'
 
 jobs:
+  get-branches:
+    runs-on: ubuntu-latest
+    outputs:
+      branches: ${{ steps.get-branches.outputs.branches }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Get branches from target repo
+      id: get-branches
+      run: |
+        .github/workflows/get-branches.sh \
+          "${{ github.event.inputs.target_aos || 'axelor/axelor-open-suite' }}" \
+          "${{ github.event.inputs.branch_pattern || '^[0-9]+\.[0-9]+$' }}"
 
   build:
+    needs: get-branches
+    runs-on: ubuntu-latest
+    if: ${{ needs.get-branches.outputs.branches != '[]' }}
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.get-branches.outputs.branches) }}
+      fail-fast: false
+    
+    steps:
+    - uses: actions/checkout@v4
 
+    - name: Get AOP version from settings.gradle
+      id: get-aop-version
+      run: |
+        .github/workflows/get-aop-version.sh \
+          "${{ github.event.inputs.target_webapp || 'axelor/open-suite-webapp' }}" \
+          "${{ matrix.branch }}" \
+          "master"
+
+    - name: Get webapp branch
+      id: get-webapp-branch
+      run: |
+        .github/workflows/get-webapp-branch.sh \
+          "${{ github.event.inputs.target_webapp || 'axelor/open-suite-webapp' }}" \
+          "${{ matrix.branch }}"
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Build the Docker image for branch ${{ matrix.branch }}
+      run: docker buildx build --build-arg AOP_VERSION=$AOP_VERSION --build-arg AOS_VERSION=${{ matrix.branch }} --build-arg WEBAPP_VERSION=$WEBAPP_VERSION --tag axelor/aos-ce:${{ matrix.branch }} aos-ce
+    
+    - name: Push to Docker Hub
+      run: docker push axelor/aos-ce:${{ matrix.branch }}
+
+  build-latest:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Get AOP version from settings.gradle
+      id: get-aop-version
+      run: |
+        .github/workflows/get-aop-version.sh \
+          "${{ github.event.inputs.target_webapp || 'axelor/open-suite-webapp' }}" \
+          "master"
     
     - name: Login to Docker Hub
       uses: docker/login-action@v3
@@ -22,7 +94,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     
     - name: Build the Docker image
-      run: docker buildx build --build-arg AOP_VERSION=${{ env.AOP_VERSION || 'latest' }} --build-arg AOS_VERSION=${{ env.AOS_VERSION || 'master' }} --tag axelor/aos-ce:${{ env.DOCKER_TAG || 'latest' }} aos-ce
+      run: docker buildx build --build-arg AOP_VERSION=$AOP_VERSION --build-arg AOS_VERSION=master --tag axelor/aos-ce:latest aos-ce
     
     - name: Push to Docker Hub
-      run: docker push axelor/aos-ce:${{ env.DOCKER_TAG || 'latest' }}
+      run: docker push axelor/aos-ce:latest
