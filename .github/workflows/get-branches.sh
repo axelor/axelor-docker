@@ -16,6 +16,12 @@ while true; do
   # Get current page
   response=$(curl -s "https://api.github.com/repos/$REPO/branches?per_page=100&page=$page")
   
+  # Check if response is an error (contains "message" field)
+  if echo "$response" | jq -e 'has("message")' >/dev/null 2>&1; then
+    echo "  API Error: $(echo "$response" | jq -r '.message')"
+    break
+  fi
+  
   # Check if page contains branches
   branch_count=$(echo "$response" | jq '. | length')
   
