@@ -1,21 +1,24 @@
 ARG AOP_VERSION=latest
-FROM axelor/app-builder:${AOP_VERSION} AS builder
+FROM alpine/git:latest AS sources
+
 ARG AOS_VERSION=master
 ARG WEBAPP_VERSION=${AOS_VERSION}
-ARG APP_SOURCE=/app
+
+RUN git clone https://github.com/axelor/open-suite-webapp.git -b ${WEBAPP_VERSION} /webapp && \
+	git clone https://github.com/axelor/axelor-open-suite.git -b ${AOS_VERSION} /webapp/modules/axelor-open-suite && \
+	chmod +x /webapp/gradlew
+
+FROM axelor/app-builder:${AOP_VERSION} AS builder
+
 ARG DEBIAN_FRONTEND=noninteractive
+COPY --from=sources /webapp /app
+WORKDIR /app
 
-RUN git clone https://github.com/axelor/open-suite-webapp.git -b ${WEBAPP_VERSION} ${APP_SOURCE} && \
-	git clone https://github.com/axelor/axelor-open-suite.git -b ${AOS_VERSION} ${APP_SOURCE}/modules/axelor-open-suite
-
-WORKDIR ${APP_SOURCE}
-
-RUN chmod +x gradlew && \
-    ./gradlew build -xtest && \
-    mkdir -p ${APP_SOURCE}/webapps/ROOT && \
-    unzip -q -o ${APP_SOURCE}/build/libs/*.war -d ${APP_SOURCE}/webapps/ROOT/ && \
-    mkdir -p ${APP_SOURCE}/reports && \
-    if ls ${APP_SOURCE}/build/libs/*-reports.zip 1> /dev/null 2>&1; then unzip -q -o ${APP_SOURCE}/build/libs/*-reports.zip -d ${APP_SOURCE}/reports/; fi
+RUN ./gradlew build -xtest && \
+    mkdir -p /app/webapps/ROOT && \
+    unzip -q -o /app/build/libs/*.war -d /app/webapps/ROOT/ && \
+    mkdir -p /app/reports && \
+    if ls /app/build/libs/*-reports.zip 1> /dev/null 2>&1; then unzip -q -o /app/build/libs/*-reports.zip -d /app/reports/; fi
 
 FROM alpine:3.22 AS runner
 
