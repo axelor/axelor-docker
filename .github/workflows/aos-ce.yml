@@ -40,8 +40,8 @@ jobs:
       id: get-branches
       run: |
         .github/workflows/get-branches.sh \
-          "${{ github.event.inputs.target_aos }}" \
-          "${{ github.event.inputs.branch_pattern }}"
+          "${{ github.event.inputs.target_aos || 'axelor/axelor-open-suite' }}" \
+          "${{ github.event.inputs.branch_pattern || '^[0-9]+\.[0-9]+$' }}"
 
   get-tags:
     runs-on: ubuntu-latest
@@ -54,9 +54,9 @@ jobs:
       id: get-tags
       run: |
         .github/workflows/get-tags.sh \
-          "${{ github.event.inputs.target_aos }}" \
-          "${{ github.event.inputs.tag_pattern }}" \
-          "${{ github.event.inputs.docker_repo }}"
+          "${{ github.event.inputs.target_aos || 'axelor/axelor-open-suite' }}" \
+          "${{ github.event.inputs.tag_pattern || '^v?[0-9]+\.[0-9]+\.[0-9]+$' }}" \
+          "${{ github.event.inputs.docker_repo || 'axelor/aos-ce' }}"
 
   build:
     needs: get-branches
@@ -74,7 +74,7 @@ jobs:
       id: get-aop-version
       run: |
         .github/workflows/get-aop-version.sh \
-          "${{ github.event.inputs.target_webapp }}" \
+          "${{ github.event.inputs.target_webapp || 'axelor/open-suite-webapp' }}" \
           "${{ matrix.branch }}" \
           "master"
 
@@ -82,7 +82,7 @@ jobs:
       id: get-webapp-branch
       run: |
         .github/workflows/get-webapp-branch.sh \
-          "${{ github.event.inputs.target_webapp }}" \
+          "${{ github.event.inputs.target_webapp || 'axelor/open-suite-webapp' }}" \
           "${{ matrix.branch }}"
     
     - name: Login to Docker Hub
@@ -92,10 +92,10 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     
     - name: Build the Docker image for branch ${{ matrix.branch }}
-      run: docker buildx build --build-arg AOP_VERSION=$AOP_VERSION --build-arg AOS_VERSION=${{ matrix.branch }} --build-arg WEBAPP_VERSION=$WEBAPP_VERSION --tag ${{ github.event.inputs.docker_repo }}:${{ matrix.branch }} aos-ce
+      run: docker buildx build --build-arg AOP_VERSION=$AOP_VERSION --build-arg AOS_VERSION=${{ matrix.branch }} --build-arg WEBAPP_VERSION=$WEBAPP_VERSION --tag ${{ github.event.inputs.docker_repo || 'axelor/aos-ce' }}:${{ matrix.branch }} aos-ce
     
     - name: Push to Docker Hub
-      run: docker push ${{ github.event.inputs.docker_repo }}:${{ matrix.branch }}
+      run: docker push ${{ github.event.inputs.docker_repo || 'axelor/aos-ce' }}:${{ matrix.branch }}
 
   build-tags:
     needs: get-tags
@@ -113,7 +113,7 @@ jobs:
       id: get-aop-version
       run: |
         .github/workflows/get-aop-version.sh \
-          "${{ github.event.inputs.target_webapp }}" \
+          "${{ github.event.inputs.target_webapp || 'axelor/open-suite-webapp' }}" \
           "${{ matrix.tag }}" \
           "master"
 
@@ -121,7 +121,7 @@ jobs:
       id: get-webapp-branch
       run: |
         .github/workflows/get-webapp-branch.sh \
-          "${{ github.event.inputs.target_webapp }}" \
+          "${{ github.event.inputs.target_webapp || 'axelor/open-suite-webapp' }}" \
           "${{ matrix.tag }}"
     
     - name: Login to Docker Hub
@@ -131,10 +131,10 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     
     - name: Build the Docker image for tag ${{ matrix.tag }}
-      run: docker buildx build --build-arg AOP_VERSION=$AOP_VERSION --build-arg AOS_VERSION=${{ matrix.tag }} --build-arg WEBAPP_VERSION=$WEBAPP_VERSION --tag ${{ github.event.inputs.docker_repo }}:${{ matrix.tag }} aos-ce
+      run: docker buildx build --build-arg AOP_VERSION=$AOP_VERSION --build-arg AOS_VERSION=${{ matrix.tag }} --build-arg WEBAPP_VERSION=$WEBAPP_VERSION --tag ${{ github.event.inputs.docker_repo || 'axelor/aos-ce' }}:${{ matrix.tag }} aos-ce
     
     - name: Push to Docker Hub
-      run: docker push ${{ github.event.inputs.docker_repo }}:${{ matrix.tag }}
+      run: docker push ${{ github.event.inputs.docker_repo || 'axelor/aos-ce' }}:${{ matrix.tag }}
 
   build-latest:
     runs-on: ubuntu-latest
@@ -146,7 +146,7 @@ jobs:
       id: get-aop-version
       run: |
         .github/workflows/get-aop-version.sh \
-          "${{ github.event.inputs.target_webapp }}" \
+          "${{ github.event.inputs.target_webapp || 'axelor/open-suite-webapp' }}" \
           "master"
     
     - name: Login to Docker Hub
@@ -156,7 +156,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     
     - name: Build the Docker image
-      run: docker buildx build --build-arg AOP_VERSION=$AOP_VERSION --build-arg AOS_VERSION=master --tag ${{ github.event.inputs.docker_repo }}:latest aos-ce
+      run: docker buildx build --build-arg AOP_VERSION=$AOP_VERSION --build-arg AOS_VERSION=master --tag ${{ github.event.inputs.docker_repo || 'axelor/aos-ce' }}:latest aos-ce
     
     - name: Push to Docker Hub
-      run: docker push ${{ github.event.inputs.docker_repo }}:latest
+      run: docker push ${{ github.event.inputs.docker_repo || 'axelor/aos-ce' }}:latest
