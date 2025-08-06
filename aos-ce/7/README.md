@@ -44,10 +44,6 @@ The image supports several build arguments for customization:
 
 #### Primary Build Arguments
 
-- `AOP_VERSION`: Version of the Axelor application builder image (default: `latest`)
-  - Controls which version of the build tools and dependencies are used
-  - Should match the target Axelor Open Suite version compatibility
-
 - `AOS_VERSION`: Version or branch of Axelor Open Suite to build (default: `master`)
   - Specifies which branch/tag of the source code to clone and build
   - Common values: `master`, `dev`, or specific version tags like `v7.0.0`
@@ -57,7 +53,6 @@ The image supports several build arguments for customization:
 ```bash
 # Build with specific versions
 docker build \
-  --build-arg AOP_VERSION=6.1 \
   --build-arg AOS_VERSION=7.0.0 \
   -t axelor/aos-ce:7.0.0 .
 

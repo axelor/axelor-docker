@@ -1,4 +1,3 @@
-ARG AOP_VERSION=latest
 FROM alpine/git:latest AS sources
 
 ARG AOS_VERSION=master
@@ -8,17 +7,19 @@ RUN git clone https://github.com/axelor/open-suite-webapp.git -b ${WEBAPP_VERSIO
 	git clone https://github.com/axelor/axelor-open-suite.git -b ${AOS_VERSION} /webapp/modules/axelor-open-suite && \
 	chmod +x /webapp/gradlew
 
-FROM axelor/app-builder:${AOP_VERSION} AS builder
+FROM eclipse-temurin:11-jdk AS builder
 
-ARG DEBIAN_FRONTEND=noninteractive
 COPY --from=sources /webapp /app
 WORKDIR /app
 
-RUN ./gradlew --no-daemon -xtest -xcheck -xspotlessApply build && \
-    mkdir -p /app/webapps/ROOT && \
-    unzip -q -o /app/build/libs/*.war -d /app/webapps/ROOT/ && \
-    mkdir -p /app/reports && \
-    if ls /app/build/libs/*-reports.zip 1> /dev/null 2>&1; then unzip -q -o /app/build/libs/*-reports.zip -d /app/reports/; fi
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends unzip && \
+	./gradlew --no-daemon -xtest -xcheck -xspotlessApply build && \
+	mkdir -p /app/webapps/ROOT && \
+	unzip -q -o /app/build/libs/*.war -d /app/webapps/ROOT/ && \
+	mkdir -p /app/reports && \
+	if ls /app/build/libs/*-reports.zip 1> /dev/null 2>&1; then unzip -q -o /app/build/libs/*-reports.zip -d /app/reports/; fi && \
+	rm -rf /var/lib/apt/lists/*
 
 FROM alpine:3.22 AS runner
 
@@ -37,7 +38,7 @@ ENV CATALINA_OPTS="-server"
 
 # Refresh repositories and install tools needed by the entrypoint
 RUN apk update && \
-	apk add --no-cache htop vim bash bash-completion curl coreutils postgresql16-client openjdk11-jre-headless openjdk11-jdk
+	apk add --no-cache htop vim bash bash-completion curl coreutils openjdk11-jdk
 
 ENV TZ=Europe/Paris
 ENV LANG=en_US.UTF-8
