@@ -14,7 +14,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 COPY --from=sources /webapp /app
 WORKDIR /app
 
-RUN ./gradlew build -xtest && \
+RUN ./gradlew --no-daemon -xtest -xcheck -xspotlessApply build && \
     mkdir -p /app/webapps/ROOT && \
     unzip -q -o /app/build/libs/*.war -d /app/webapps/ROOT/ && \
     mkdir -p /app/reports && \
