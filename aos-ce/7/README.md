@@ -15,7 +15,6 @@ The `aos-ce` (Axelor Open Suite Community Edition) Docker image provides a produ
 - **Base Image**: Alpine Linux 3.22
 - **Application Server**: Apache Tomcat 9.0.100
 - **Java Runtime**: OpenJDK 11
-- **Database Client**: PostgreSQL 16 client
 - **User**: Non-root user `axelor` (UID: 1000, GID: 1000)
 
 ## Features
