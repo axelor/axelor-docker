@@ -2,7 +2,9 @@ FROM node:22-alpine AS goovee-base
 
 FROM alpine/git:latest AS goovee-source
 
-RUN git clone https://github.com/axelor/goovee.git -b main /goovee
+ARG GOOVEE_BRANCH=main
+
+RUN git clone https://github.com/axelor/goovee.git -b ${GOOVEE_BRANCH} /goovee
 
 # Install dependencies only when needed
 FROM goovee-base AS goovee-deps

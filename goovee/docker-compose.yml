@@ -73,7 +73,6 @@ services:
     volumes:
       - app_data:/data
     ports:
-      - "8080:8080"
       - "3000:3000"
   postgres:
     image: "postgres:16"
