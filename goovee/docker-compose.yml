@@ -1,6 +1,8 @@
 services:
   app:
     image: axelor/aos-ce:latest
+    depends_on:
+      - postgres
     environment:
       - PGHOST=postgres
       - PGPORT=5432
@@ -22,15 +24,14 @@ services:
   goovee:
     image: axelor/goovee-ce:latest
     depends_on:
-      - postgres
-      - app
+      app:
+        condition: service_healthy
     environment:
       - PGHOST=postgres
       - PGPORT=5432
       - PGUSER=axelor
       - PGPASSWORD=axelor
       - PGDATABASE=axelor
-      # Host environment variables
       - DATA_STORAGE=/data/attachments
       - MULTI_TENANCY=false
       - INCLUDE_LANGUAGE=true
