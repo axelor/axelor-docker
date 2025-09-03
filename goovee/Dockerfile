@@ -26,6 +26,7 @@ COPY --from=goovee-source /goovee/ .
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV GENERATE_SOURCEMAP=false
 
 RUN sed -i '/const nextConfig = {/a\  output: "standalone",' next.config.mjs && \
     corepack enable pnpm && pnpm generate && pnpm website:sass && pnpm build
