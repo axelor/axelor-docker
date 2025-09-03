@@ -3,9 +3,16 @@ FROM alpine/git:latest AS sources
 ARG AOS_VERSION=master
 ARG WEBAPP_VERSION=${AOS_VERSION}
 
+ARG ADDITIONAL_MODULES
+
 RUN git clone https://github.com/axelor/open-suite-webapp.git -b ${WEBAPP_VERSION} /webapp && \
 	git clone https://github.com/axelor/axelor-open-suite.git -b ${AOS_VERSION} /webapp/modules/axelor-open-suite && \
 	chmod +x /webapp/gradlew
+
+RUN for module in $ADDITIONAL_MODULES; do \
+        name=$(basename "$module" .git); \
+        git clone "$module" "/webapp/modules/$name"; \
+    done
 
 FROM eclipse-temurin:11-jdk AS builder
 

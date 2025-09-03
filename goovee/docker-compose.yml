@@ -20,8 +20,7 @@ services:
       retries: 3
       start_period: 1800s
   goovee:
-    build:
-      context: .
+    image: axelor/goovee-ce:latest
     depends_on:
       - postgres
       - app
@@ -32,44 +31,21 @@ services:
       - PGPASSWORD=axelor
       - PGDATABASE=axelor
       # Host environment variables
-      - DATA_STORAGE
-      - MULTI_TENANCY
-      - INCLUDE_LANGUAGE
-      - NEXT_PUBLIC_HOST
-      - NEXT_PUBLIC_AOS_URL
-      - NEXTAUTH_URL
-      - NEXTAUTH_SECRET
-      - BASIC_AUTH_USERNAME
-      - BASIC_AUTH_PASSWORD
-      - TENANT_MANAGER_BASIC_USERNAME
-      - TENANT_MANAGER_BASIC_PASSWORD
-      - GOOGLE_CLIENT_ID
-      - GOOGLE_CLIENT_SECRET
-      - PAYPAL_CLIENT_ID
-      - PAYPAL_CLIENT_SECRET
-      - NEXT_PUBLIC_PAYPAL_CLIENT_ID
-      - STRIPE_CLIENT_ID
-      - STRIPE_CLIENT_SECRET
-      - NEXT_PUBLIC_STRIPE_CLIENT_ID
-      - PBX_RANG
-      - PBX_IDENTIFIANT
-      - PBX_SITE
-      - PBX_PAYBOX
-      - PBX_BACKUP1
-      - PBX_BACKUP2
-      - PBX_SECRET
-      - NEXT_PUBLIC_MATTERMOST_HOST
-      - NEXT_PUBLIC_MATTERMOST_WEBSOCKET_URL
-      - MAIL_HOST
-      - MAIL_PORT
-      - MAIL_SECURE
-      - MAIL_USER
-      - MAIL_PASSWORD
-      - MAIL_EMAIL
-      - NEXT_PUBLIC_LINKEDIN_URL
-      - NEXT_PUBLIC_TWITTER_URL
-      - NEXT_PUBLIC_INSTAGRAM_URL
-      - NEXT_PUBLIC_WHATSAPP_URL
+      - DATA_STORAGE=/data/attachments
+      - MULTI_TENANCY=false
+      - INCLUDE_LANGUAGE=true
+      - GOOVEE_PUBLIC_HOST=http://localhost:3000
+      - GOOVEE_PUBLIC_AOS_URL=http://app:8080
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=tobechanged
+      - BASIC_AUTH_USERNAME=admin
+      - BASIC_AUTH_PASSWORD=admin
+      - MAIL_HOST=sandbox.smtp.mailtrap.io
+      - MAIL_PORT=2525
+      - MAIL_SECURE=false
+      - MAIL_USER=username
+      - MAIL_PASSWORD=password
+      - MAIL_EMAIL=goovee@example.com
     volumes:
       - app_data:/data
     ports:
