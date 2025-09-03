@@ -47,6 +47,9 @@ ENV CATALINA_OPTS="-server"
 RUN apk update && \
 	apk add --no-cache htop vim bash bash-completion curl coreutils openjdk11-jdk
 
+# Install fontconfig (required for excel support)
+RUN apk add --no-cache fontconfig ttf-dejavu
+
 ENV TZ=Europe/Paris
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
