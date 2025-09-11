@@ -5,4 +5,4 @@ This repository provides [Dockerfiles](https://docs.docker.com/engine/reference/
 ## AOS Community Edition
 
 For the latest and maintained Docker configuration, please refer to:
-- [AOS Community Edition README](./aos-ce/README.md)
+- [AOS Community Edition README](./aos-ce)
