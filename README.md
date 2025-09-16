@@ -6,3 +6,8 @@ This repository provides [Dockerfiles](https://docs.docker.com/engine/reference/
 
 For the latest and maintained Docker configuration, please refer to:
 - [AOS Community Edition README](./aos-ce)
+
+## Goovee Community Edition
+
+For the latest and maintained Docker configuration, please refer to:
+- [Goovee Community Edition README](./goovee)
