@@ -14,7 +14,7 @@ This Docker image is built using a multi-stage approach optimized for production
 
 ## Image Details
 
-- **Base Image**: `node:22-alpine`
+- **Base Image**: `node:22`
 - **Architecture**: Multi-stage build for optimized image size
 - **Package Manager**: pnpm with frozen lockfile
 - **User**: Non-root user (nextjs:nodejs)
@@ -105,7 +105,7 @@ services:
       - postgres
 
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16
     environment:
       POSTGRES_USER: axelor
       POSTGRES_PASSWORD: axelor
@@ -133,7 +133,6 @@ volumes:
 ## Security Features
 
 - Non-root user execution (UID/GID 1001)
-- Minimal Alpine Linux base image
 - Production-optimized Next.js standalone output
 - Secure environment variable handling
 
