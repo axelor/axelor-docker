@@ -17,7 +17,7 @@ This Docker image is built using a multi-stage approach optimized for production
 - **Base Image**: `node:22`
 - **Architecture**: Multi-stage build for optimized image size
 - **Package Manager**: pnpm with frozen lockfile
-- **User**: Non-root user (nextjs:nodejs)
+- **User**: Non-root user (node:node)
 - **Port**: 3000
 
 ## Prerequisites

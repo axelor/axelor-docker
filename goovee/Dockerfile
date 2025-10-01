@@ -31,7 +31,6 @@ RUN sed -i '/const nextConfig = {/a\  output: "standalone",' next.config.mjs && 
 
 # Production image, copy all the files and run next
 FROM goovee-base AS runner
-WORKDIR /app
 
 ENV PGHOST=postgres
 ENV PGPORT=5432
@@ -62,20 +61,19 @@ ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=goovee-builder /app/public ./public
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=goovee-builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=goovee-builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-USER nextjs
+WORKDIR /home/node
+
+COPY --from=goovee-builder --chown=node:node /app/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=goovee-builder --chown=node:node /app/.next/standalone ./
+COPY --from=goovee-builder --chown=node:node /app/.next/static ./.next/static
+
+USER node
 
 EXPOSE 3000
 
