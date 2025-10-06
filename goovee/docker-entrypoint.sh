@@ -5,7 +5,7 @@ export DATABASE_URL=${DATABASE_URL:-postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}
 if [ "$1" = "start" ]; then
   shift
 
-  exec node /home/node/server.js
+  exec node server.js
 fi
 
 exec "$@"
