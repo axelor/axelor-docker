@@ -26,8 +26,7 @@ COPY --from=goovee-source /goovee/ .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV GENERATE_SOURCEMAP=false
 
-RUN sed -i '/const nextConfig = {/a\  output: "standalone",' next.config.mjs && \
-    corepack enable pnpm && pnpm generate && pnpm website:sass && pnpm build
+RUN corepack enable pnpm && pnpm generate && pnpm website:sass && pnpm build
 
 # Production image, copy all the files and run next
 FROM goovee-base AS runner
