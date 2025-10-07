@@ -7,7 +7,6 @@ services:
       - PGUSER=axelor
       - PGPASSWORD=axelor
       - PGDATABASE=axelor
-      - DEV_MODE=true
       - JAVA_XMX=4096m
     ports:
       - "8080:8080"

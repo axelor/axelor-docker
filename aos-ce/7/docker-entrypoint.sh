@@ -11,7 +11,8 @@ PGDATABASE="${PGDATABASE:-axelor}"
 
 APP_LANGUAGE="${APP_LANGUAGE:-en}"
 APP_DEMO_DATA="${APP_DEMO_DATA:-false}"
-DEV_MODE="${DEV_MODE:-true}"
+APP_MODE="${APP_MODE:-dev}"
+LOG_LEVEL="${LOG_LEVEL:-DEBUG}"
 ENABLE_QUARTZ="${ENABLE_QUARTZ:-false}"
 
 APP_DATA_BASE_DIR="/data"
@@ -53,11 +54,6 @@ update_properties() {
   echo "Configuring app:properties 🔧"
 
   APP_PROP_FILE_PATH="${CATALINA_HOME}/webapps/ROOT/WEB-INF/classes/axelor-config.properties"
-  APP_MODE="dev"
-  LOG_LEVEL="INFO"
-  if [ "${DEV_MODE}" = "true" ]; then
-    LOG_LEVEL="DEBUG"
-  fi
 
   # keep the name defined in the property file if no explicit name is provided in env variables
   if [ ! -z "${APP_NAME}" ]; then

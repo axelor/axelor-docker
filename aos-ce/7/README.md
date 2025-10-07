@@ -85,7 +85,8 @@ docker build \
 - `APP_LANGUAGE`: Application language (default: `en`)
 - `APP_DEMO_DATA`: Enable demo data loading (default: `false`)
 - `APP_LOAD_APPS`: Studio apps to install (optional)
-- `DEV_MODE`: Enable development mode (default: `true`)
+- `APP_MODE`: Application mode. Possible values: `dev`, `prod` (default: `dev`)
+- `LOG_LEVEL`: Application log level for com.axelor packages (default: `DEBUG`)
 - `ENABLE_QUARTZ`: Enable Quartz scheduler (default: `false`)
 
 #### Memory Configuration
@@ -117,7 +118,6 @@ services:
       - PGUSER=axelor
       - PGPASSWORD=axelor
       - PGDATABASE=axelor
-      - DEV_MODE=true
       - JAVA_XMX=4096m
     ports:
       - "8080:8080"
