@@ -25,8 +25,9 @@ COPY --from=goovee-source /goovee/ .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV GENERATE_SOURCEMAP=false
+ENV NEXT_OTEL_DISABLE=1
 
-RUN corepack enable pnpm && pnpm generate && pnpm website:sass && pnpm build
+RUN rm -rf "app/[tenant]/[workspace]/(subapps)/website" && corepack enable pnpm && pnpm generate && pnpm build
 
 # Production image, copy all the files and run next
 FROM goovee-base AS runner
