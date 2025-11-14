@@ -7,6 +7,7 @@ This repository contains Docker configurations for Axelor Open Suite Community E
 The source files are organized in directories named according to the major AOP version they support:
 
 * [AOP 7](7)
+* [AOP 8 (work in progress)](8)
 
 Each version directory contains the complete Docker setup including Dockerfile, docker-compose.yml, and related configuration files.
 

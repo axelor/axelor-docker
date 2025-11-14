@@ -1,4 +1,4 @@
-# Axelor Open Suite - Community Edition Docker Image - AOP 7.+
+# Axelor Open Suite - Community Edition Docker Image - AOP 8.+
 
 ## Overview
 
@@ -7,14 +7,14 @@ The `aos-ce` (Axelor Open Suite Community Edition) Docker image provides a produ
 ## Architecture
 
 ### Build Stage
-- **Base Image**: `axelor/app-builder:latest`
+- **Base Image**: `alpine/git:latest` for source cloning, `eclipse-temurin:21-jdk` for building
 - **Source**: Axelor Open Suite webapp and modules from GitHub
 - **Build Process**: Gradle-based compilation with WAR file generation
 
 ### Runtime Stage
 - **Base Image**: Alpine Linux 3.22
-- **Application Server**: Apache Tomcat 9.0.100
-- **Java Runtime**: OpenJDK 11
+- **Application Server**: Apache Tomcat 10.1.49
+- **Java Runtime**: OpenJDK 21
 - **User**: Non-root user `axelor` (UID: 1000, GID: 1000)
 
 ## Features
@@ -43,29 +43,44 @@ The image supports several build arguments for customization:
 
 #### Primary Build Arguments
 
-- `AOS_VERSION`: Version or branch of Axelor Open Suite to build (default: `master`)
+- `AOS_VERSION`: Version or branch of Axelor Open Suite to build (default: `wip`)
   - Specifies which branch/tag of the source code to clone and build
-  - Common values: `master`, `dev`, or specific version tags like `v7.0.0`
+  - Common values: `wip`, `dev`, or specific version tags like `v8.0.0`
+
+- `WEBAPP_VERSION`: Version or branch of open-suite-webapp to build (default: same as `AOS_VERSION`)
+  - Specifies which branch/tag of the webapp to clone
+  - By default, uses the same value as `AOS_VERSION`
+
+- `ADDITIONAL_MODULES`: Space-separated list of additional modules to clone (optional)
+  - Format: `url` or `url|branch`
+  - Example: `https://github.com/user/module1.git https://github.com/user/module2.git|develop`
+  - Modules without specified branch will use the default branch
 
 #### Example with Custom Build Arguments
 
 ```bash
 # Build with specific versions
 docker build \
-  --build-arg AOS_VERSION=7.0.0 \
-  -t axelor/aos-ce:7.0.0 .
+  --build-arg AOS_VERSION=8.0.0 \
+  -t axelor/aos-ce:8.0.0 .
 
 # Build development version
 docker build \
   --build-arg AOS_VERSION=dev \
   -t axelor/aos-ce:dev .
+
+# Build with additional modules
+docker build \
+  --build-arg AOS_VERSION=wip \
+  --build-arg ADDITIONAL_MODULES="https://github.com/user/custom-module1.git https://github.com/user/custom-module2.git|main" \
+  -t axelor/aos-ce:custom .
 ```
 
 #### Additional Build Arguments
 
 - `UID`: User ID for the axelor user (default: `1000`)
 - `GID`: Group ID for the axelor user (default: `1000`)
-- `TOMCAT_VERSION`: Apache Tomcat version (default: `9.0.100`)
+- `TOMCAT_VERSION`: Apache Tomcat version (default: `10.1.49`)
 
 ## Configuration
 
