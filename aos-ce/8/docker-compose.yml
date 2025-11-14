@@ -1,0 +1,24 @@
+services:
+  app:
+    image: aos-ce:latest
+    environment:
+      - PGHOST=postgres
+      - PGPORT=5432
+      - PGUSER=axelor
+      - PGPASSWORD=axelor
+      - PGDATABASE=axelor
+      - JAVA_XMX=4096m
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 1800s
+  postgres:
+    image: "postgres:16"
+    environment:
+      - POSTGRES_USER=axelor
+      - POSTGRES_PASSWORD=axelor
+      - POSTGRES_DB=axelor
