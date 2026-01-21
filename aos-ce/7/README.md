@@ -43,9 +43,9 @@ The image supports several build arguments for customization:
 
 #### Primary Build Arguments
 
-- `AOS_VERSION`: Version or branch of Axelor Open Suite to build (default: `master`)
+- `AOS_VERSION`: Version or branch of Axelor Open Suite to build (default: `8.5-dev`)
   - Specifies which branch/tag of the source code to clone and build
-  - Common values: `master`, `dev`, or specific version tags like `v7.0.0`
+  - Common values: `8.5-dev`, `dev`, or specific version tags like `v7.0.0`
 
 - `WEBAPP_VERSION`: Version or branch of open-suite-webapp to build (default: same as `AOS_VERSION`)
   - Specifies which branch/tag of the webapp to clone
@@ -71,7 +71,7 @@ docker build \
 
 # Build with additional modules
 docker build \
-  --build-arg AOS_VERSION=master \
+  --build-arg AOS_VERSION=8.5-dev \
   --build-arg ADDITIONAL_MODULES="https://github.com/user/custom-module1.git https://github.com/user/custom-module2.git|main" \
   -t axelor/aos-ce:custom .
 ```
