@@ -1,6 +1,6 @@
 services:
   app:
-    image: aos-ce:latest
+    image: axelor/aos-ce:9.0
     environment:
       - PGHOST=postgres
       - PGPORT=5432

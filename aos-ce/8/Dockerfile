@@ -35,12 +35,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     if ls /app/build/libs/*-reports.zip 1> /dev/null 2>&1; then unzip -q -o /app/build/libs/*-reports.zip -d /app/reports/; fi && \
     rm -rf /var/lib/apt/lists/*
 
-FROM alpine:3.22 AS runner
+FROM debian:trixie-slim AS runner
 
 ARG UID=1000
 ARG GID=1000
 
-ARG TOMCAT_VERSION=10.1.49
+ARG TOMCAT_VERSION=10.1.50
 ARG BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
 ENV USER=axelor
@@ -51,24 +51,37 @@ ENV JAVA_OPTS="-Daxelor.ScriptCacheSize=500 -Daxelor.ScriptCacheExpireTime=10"
 ENV CATALINA_OPTS="-server"
 
 # Refresh repositories and install tools needed by the entrypoint
-RUN apk update && \
-    apk add --no-cache htop vim bash bash-completion curl coreutils openjdk21-jdk
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        htop vim bash bash-completion curl coreutils \
+        fontconfig fonts-dejavu-core \
+        postgresql-client ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install fontconfig (required for excel support)
-RUN apk add --no-cache fontconfig ttf-dejavu
+# Install Temurin JDK 21
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+RUN curl -fsSL https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse -o /tmp/jdk.tar.gz && \
+    mkdir -p ${JAVA_HOME} && \
+    tar -xzf /tmp/jdk.tar.gz -C ${JAVA_HOME} --strip-components=1 && \
+    rm /tmp/jdk.tar.gz
 
 ENV TZ=Europe/Paris
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
-# Set timezone
-RUN apk add --no-cache musl musl-utils musl-locales tzdata && \
-    cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
+# Set locale and timezone
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends locales tzdata && \
+    rm -rf /var/lib/apt/lists/* && \
+    sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen && \
+    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && \
     echo "${TZ}" > /etc/timezone
 
-RUN addgroup -g ${GID} -S ${USER} && \
-    adduser -u ${UID} -S -G ${USER} -h ${HOME} -s /bin/bash ${USER}
+RUN groupadd -g ${GID} ${USER} && \
+    useradd -u ${UID} -g ${USER} -d ${HOME} -m -s /bin/bash ${USER}
 
 RUN mkdir /data
 RUN chown -R ${USER}:${USER} /data
@@ -91,7 +104,7 @@ RUN sed -i -E ':a;N;$!ba;s/<Valve className=\"org.apache.catalina.valves.AccessL
 RUN sed -i -E '/<\/Host>/i <Valve className="org.apache.catalina.valves.HealthCheckValve" />' ${CATALINA_HOME}/conf/server.xml
 
 # Create important directories
-RUN mkdir ${CATALINA_HOME}/webapps ${CATALINA_HOME}/reports ${CATALINA_HOME}/scripts
+RUN mkdir -p ${CATALINA_HOME}/webapps ${CATALINA_HOME}/reports ${CATALINA_HOME}/scripts
 
 # Expose ports
 EXPOSE 8080
