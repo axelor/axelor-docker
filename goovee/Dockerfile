@@ -12,6 +12,8 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY --from=goovee-source /goovee/package.json /goovee/yarn.lock* /goovee/package-lock.json* /goovee/pnpm-lock.yaml* /goovee/.npmrc* ./
+# Copy patches folder required by pnpm patchedDependencies
+COPY --from=goovee-source /goovee/patches ./patches
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
 # Rebuild the source code only when needed
