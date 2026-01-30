@@ -4,7 +4,8 @@ FROM alpine/git:latest AS goovee-source
 
 ARG GOOVEE_BRANCH=main
 
-RUN git clone https://github.com/axelor/goovee.git -b ${GOOVEE_BRANCH} /goovee
+RUN git clone https://github.com/axelor/goovee.git -b ${GOOVEE_BRANCH} /goovee && \
+    mkdir -p /goovee/patches
 
 # Install dependencies only when needed
 FROM goovee-base AS goovee-deps
